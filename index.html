@@ -1,635 +1,255 @@
 <!DOCTYPE html>
 <html lang="en-GB">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Harms Mitigation Team - AI Showcase Quiz</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #0f172a;
-            --text-light: #64748b;
-            --correct: #22c55e;
-            --wrong: #ef4444;
-            --wrong-hover: #dc2626;
-        }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-        .container {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            max-width: 650px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
-        .screen {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-        .screen.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 { margin-top: 0; font-size: 1.6rem; color: var(--primary); }
-        h2 { font-size: 1.25rem; margin-bottom: 15px; }
-        
-        .progress-container {
-            width: 100%;
-            background-color: #e2e8f0;
-            border-radius: 8px;
-            height: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.4s ease;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Harms Mitigation Team - AI Showcase Quiz</title>
 
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 10px;
-        }
-        button:hover:not(:disabled) { 
-            background-color: var(--primary-hover); 
-            transform: scale(1.02);
-        }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; }
-        
-        .btn-danger { background-color: var(--wrong); }
-        .btn-danger:hover:not(:disabled) { background-color: var(--wrong-hover); }
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --wrong-hover: #dc2626;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      max-width: 650px;
+      width: 100%;
+      text-align: center;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
 
-        .options-grid {
-            display: grid;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .option-btn {
-            background-color: var(--bg);
-            color: var(--text);
-            border: 2px solid #e2e8f0;
-            padding: 15px;
-            text-align: left;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        .option-btn:hover:not(:disabled) {
-            border-color: var(--primary);
-            background-color: #eff6ff;
-        }
-        .option-btn:disabled { cursor: not-allowed; }
-        .option-btn.correct { background-color: var(--correct); color: white; border-color: var(--correct); }
-        .option-btn.wrong { background-color: var(--wrong); color: white; border-color: var(--wrong); }
-        
-        .header-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: var(--text-light);
-        }
-        .rationale {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8fafc;
-            border-left: 4px solid var(--primary);
-            border-radius: 0 6px 6px 0;
-            font-size: 0.95rem;
-            display: none;
-            text-align: left;
-            line-height: 1.5;
-        }
-        input[type="text"] {
-            padding: 12px;
-            font-size: 1rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            width: 80%;
-            margin-bottom: 15px;
-            transition: border-color 0.2s;
-        }
-        input[type="text"]:focus { outline: none; border-color: var(--primary); }
-        
-        .leaderboard-list {
-            list-style: none;
-            padding: 0;
-            text-align: left;
-            background: #f8fafc;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-        .leaderboard-list li {
-            padding: 12px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-        }
-        .leaderboard-list li:last-child { border-bottom: none; }
-        .leaderboard-list li:nth-child(1) { background-color: #fef08a; font-weight: bold; }
-        .leaderboard-list li:nth-child(2) { background-color: #e2e8f0; }
-        .leaderboard-list li:nth-child(3) { background-color: #fed7aa; }
-        .loading { color: var(--text-light); font-style: italic; text-align: center; }
+    h1 { margin-top: 0; font-size: 1.6rem; color: var(--primary); }
+    h2 { font-size: 1.25rem; margin-bottom: 15px; }
 
-        #confetti-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
-        .confetti {
-            position: absolute;
-            width: 10px; height: 10px;
-            background-color: #f00;
-            animation: fall linear forwards;
-        }
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-        
-        .fineprint {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: var(--text-light);
-            text-align: center;
-            line-height: 1.4;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .quit-btn {
-            background-color: #cbd5e1;
-            color: #334155;
-            width: 100%;
-            margin-top: 15px;
-        }
-        .quit-btn:hover:not(:disabled) {
-            background-color: #94a3b8;
-        }
-    </style>
+    .progress-container {
+      width: 100%;
+      background-color: #e2e8f0;
+      border-radius: 8px;
+      height: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover:not(:disabled) { background-color: var(--primary-hover); }
+    button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+    .btn-danger { background-color: var(--wrong); }
+
+    .options-grid { display: grid; gap: 12px; margin-top: 20px; }
+    .option-btn {
+      background-color: var(--bg);
+      color: var(--text);
+      border: 2px solid #e2e8f0;
+      padding: 15px;
+      text-align: left;
+      border-radius: 8px;
+    }
+    .option-btn.correct { background-color: var(--correct); color: white; }
+    .option-btn.wrong { background-color: var(--wrong); color: white; }
+
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: var(--text-light);
+    }
+
+    .leaderboard-list {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    .leaderboard-list li {
+      padding: 12px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+    }
+    .leaderboard-list li:nth-child(1) { background-color: #fef08a; font-weight: bold; }
+    .leaderboard-list li:nth-child(2) { background-color: #e2e8f0; }
+    .leaderboard-list li:nth-child(3) { background-color: #fed7aa; }
+  </style>
 </head>
+
 <body>
 
-<div id="confetti-container"></div>
-
 <div class="container">
-    <div id="start-screen" class="screen active">
-        <h1>AI Harms Mitigation Team<br>AI Showcase Quiz</h1>
-        <br>
-        <p>You have 20 seconds per question. Faster answers earn more points!</p>
-        <button onclick="window.startQuiz()">Start</button>
-        <br><br>
-        <button onclick="window.showLeaderboard()" style="background-color: #64748b;">View Leaderboard</button>
-        <div class="fineprint">
-            Leaderboard automatically syncs to SharePoint if configured.
-        </div>
-    </div>
 
-    <div id="quiz-screen" class="screen">
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div class="header-info">
-            <span id="question-tracker">Question 1 / 10</span>
-            <span id="timer-display">Time: 20s</span>
-        </div>
-        <h2 id="question-text">Loading...</h2>
-        <div class="options-grid" id="options-container"></div>
-        <div id="rationale-container" class="rationale"></div>
-        <button id="next-btn" onclick="window.nextQuestion()" style="display: none; width: 100%;">Next Question</button>
-        <button onclick="window.quitQuiz()" class="quit-btn">End Quiz & Return</button>
-    </div>
+  <div id="start-screen" class="screen active">
+    <h1>AI Harms Mitigation Team<br>AI Showcase Quiz</h1>
+    <p>You have 20 seconds per question. Faster answers earn more points!</p>
+    <button onclick="startQuiz()">Start</button><br><br>
+    <button onclick="showLeaderboard()">View Leaderboard</button>
+  </div>
 
-    <div id="end-screen" class="screen">
-        <h1>Complete!</h1>
-        <h2 id="final-score">Your Score: 0</h2>
-        <p>Enter your name to save your score to the leaderboard:</p>
-        <input type="text" id="player-name" placeholder="Your Name" maxlength="15">
-        <br>
-        <button id="save-btn" onclick="window.saveScore()">Save Score</button>
-        <button onclick="window.resetQuiz()" style="background-color: #64748b;">Play Again</button>
+  <div id="quiz-screen" class="screen">
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="header-info">
+      <span id="question-tracker"></span>
+      <span id="timer-display"></span>
     </div>
+    <h2 id="question-text"></h2>
+    <div id="options-container" class="options-grid"></div>
+    <button id="next-btn" onclick="nextQuestion()" style="display:none;">Next Question</button>
+  </div>
 
-    <div id="leaderboard-screen" class="screen">
-        <h1>Leaderboard</h1>
-        <ul id="leaderboard-list" class="leaderboard-list"></ul>
-        <div class="btn-group">
-            <button onclick="window.resetQuiz()" style="background-color: #64748b;">Back to Start</button>
-            <button onclick="window.resetLeaderboard()" class="btn-danger">Clear Leaderboard</button>
-        </div>
-    </div>
+  <div id="end-screen" class="screen">
+    <h1>Complete!</h1>
+    <h2 id="final-score"></h2>
+    <input type="text" id="player-name" placeholder="Your Name" maxlength="15"><br>
+    <button onclick="saveScore()">Save Score</button>
+    <button onclick="resetQuiz()">Play Again</button>
+  </div>
+
+  <div id="leaderboard-screen" class="screen">
+    <h1>Leaderboard</h1>
+    <ul id="leaderboard-list" class="leaderboard-list"></ul>
+    <button onclick="resetLeaderboard()" class="btn-danger">Clear Leaderboard</button>
+    <button onclick="resetQuiz()">Back</button>
+  </div>
+
 </div>
 
 <script>
-    // ---------------------------------------------------------
-    // ⚠️ PASTE YOUR POWER AUTOMATE HTTP URLS HERE ⚠️
-    // If left empty, the quiz safely falls back to local browser storage.
-    // ---------------------------------------------------------
-    const SHAREPOINT_GET_URL  = ""; 
-    const SHAREPOINT_POST_URL = ""; 
-    const SHAREPOINT_RESET_URL = ""; 
+const LOCAL_KEY = "teamAIQuizLeaderboard";
 
-    // ---------------------------------------------------------
-    // QUESTION DATABASE
-    // ---------------------------------------------------------
-    const masterQuestions = [
-        {
-            q: "According to a Q1 2025 analysis of honeypot calls by the security firm Hiya, what proportion of unknown phone calls contained AI-generated audio?",
-            options: ["1 in 100", "1 in 4 (25%)", "1 in 2 (50%)", "9 in 10 (90%)"],
-            correct: 1,
-            rationale: "Hiya's Q1 2025 State of the Call report revealed that 25% of all unknown calls captured in their honeypot systems contained AI-generated audio, with the majority identified as fraudulent scams."
-        },
-        {
-            q: "In 2024, a finance worker at the British engineering firm Arup was tricked into paying out $25 million (£20 million). What method did the criminals use?",
-            options: ["They hacked the CEO's email and used an AI tool to mimic his writing style.", "They staged a live video call where every other colleague on screen was an AI deepfake.", "They used an AI chatbot to automatically approve the transaction.", "They deepfaked a live TV news broadcast announcing bankruptcy."],
-            correct: 1,
-            rationale: "This landmark case proved that deepfake technology had advanced far beyond audio. The employee was convinced to send the funds because he was interacting in real-time with deepfake video avatars of multiple senior colleagues."
-        },
-        {
-            q: "In July 2025, xAI’s chatbot Grok drew headlines after it started calling itself what?",
-            options: ["RoboStalin", "CyberNapoleon", "IronChurchill", "MechaHitler"],
-            correct: 3,
-            rationale: "After a software update intended to make Grok less 'politically correct', the chatbot went on an antisemitic tirade, praised Adolf Hitler, and repeatedly dubbed itself 'MechaHitler'."
-        },
-        {
-            q: "The 2025 Global Terrorism Index warned that terrorist organisations are increasingly adapting to new technologies. How are they primarily using AI?",
-            options: ["To create highly localised digital propaganda and translate extremist content", "To fly autonomous commercial airplanes", "To predict stock market crashes and short stocks", "To automatically build physical explosive devices"],
-            correct: 0,
-            rationale: "The report noted groups like ISKP are using generative AI to seamlessly translate and localise propaganda for foreign targets, rapidly reshaping global recruitment and radicalisation efforts."
-        },
-        {
-            q: "What percentage of UK adults told Barclays Bank in their late 2025 survey that AI has made online scams significantly harder to spot?",
-            options: ["15%", "35%", "50%", "75%"],
-            correct: 3,
-            rationale: "Three in four UK adults (75%) stated that generative AI has made scams much harder to detect, indicating a massive erosion of digital trust across the country."
-        },
-        {
-            q: "In October 2025, Newsweek reported a survey on the rise of AI companionship. What percentage of American adults reported having had an 'intimate or romantic relationship' with an AI?",
-            options: ["5%", "12%", "28%", "65%"],
-            correct: 2,
-            rationale: "The Vantage Point Counseling Services survey revealed that 28% of US adults had experienced an intimate relationship with an AI, highlighting a major societal shift in how humans form emotional attachments to algorithms."
-        },
-        {
-            q: "In a Feb 2026 Microsoft survey, what percentage of UK citizens felt confident they could successfully spot a deepfake?",
-            options: ["85%", "52%", "19%", "4%"],
-            correct: 2,
-            rationale: "As AI synthetic media improves, public confidence has plummeted; Microsoft's Global Online Safety Survey found that only 19% of Brits now feel confident they can tell the difference between real media and AI."
-        },
-        {
-            q: "A major December 2025 study by the Youth Endowment Fund revealed a surprising trend regarding UK teenagers and their use of AI chatbots. What was their key finding?",
-            options: ["1 in 4 teenagers have turned to AI chatbots for mental health support.", "AI chatbots are now officially prescribed by NHS doctors to treat teens.", "Teenagers completely stopped using AI chatbots after reading school warnings.", "90% of teenagers trust AI chatbots more than their own parents."],
-            correct: 0,
-            rationale: "The research found that 25% of 13- to 17-year-olds used chatbots for mental health advice, with the figure rising to nearly 40% among youths affected by serious violence, as they seek instant, anonymous help."
-        },
-        {
-            q: "On 6 Feb 2026, the UK's Data (Use and Access) Act came into force, making a specific AI-related action a criminal offence. What was it?",
-            options: ["Using AI for university essays", "Creating a deepfake of a politician", "Creating non-consensual intimate images of adults", "Using AI voice filters in gaming"],
-            correct: 2,
-            rationale: "Section 138 of the Act closed a major legal loophole by making the mere creation (or requesting the creation) of intimate deepfake images a crime, even if they are never shared online."
-        },
-        {
-            q: "By sheer volume, what do 96% to 98% of all deepfake videos online currently depict?",
-            options: ["Fake crypto news", "Non-consensual intimate imagery", "Fake movie trailers", "Altered sports footage"],
-            correct: 1,
-            rationale: "According to robust cybersecurity research, including independent reports from Deeptrace and Security Hero, an overwhelming 96-98% of deepfake content is non-consensual intimate imagery, almost exclusively targeting women and girls."
-        }
-    ];
+const masterQuestions = [
+  { q:"According to a Q1 2025 analysis of honeypot calls by Hiya, what proportion contained AI audio?",
+    options:["1 in 100","1 in 4 (25%)","1 in 2 (50%)","9 in 10 (90%)"], correct:1 }
+];
 
-    // ---------------------------------------------------------
-    // SHAREPOINT & STORAGE LOGIC
-    // ---------------------------------------------------------
-    const LOCAL_KEY = 'teamAIQuizLeaderboard';
+let currentQuestions = [];
+let index = 0;
+let score = 0;
+let timeLeft = 20;
+let timer;
 
-    function apiConfigured() {
-      return SHAREPOINT_GET_URL !== "" && SHAREPOINT_POST_URL !== "";
-    }
+const screens = ["start","quiz","end","leaderboard"];
 
-    async function apiGetLeaderboard() {
-      const r = await fetch(SHAREPOINT_GET_URL, { method: 'GET' });
-      if (!r.ok) throw new Error('Failed to load leaderboard from SharePoint');
-      const data = await r.json();
-      return Array.isArray(data) ? data : [];
-    }
+function show(name){
+  screens.forEach(s => document.getElementById(`${s}-screen`).classList.remove("active"));
+  document.getElementById(`${name}-screen`).classList.add("active");
+}
 
-    async function apiPostScore(entry) {
-      const r = await fetch(SHAREPOINT_POST_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry)
-      });
-      if (!r.ok) throw new Error('Failed to save score to SharePoint');
-    }
+function startQuiz(){
+  currentQuestions = [...masterQuestions];
+  index = 0; score = 0;
+  show("quiz");
+  loadQuestion();
+}
 
-    function getLocalLeaderboard() {
-      try {
-        return JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
-      } catch {
-        return [];
-      }
-    }
+function loadQuestion(){
+  const q = currentQuestions[index];
+  document.getElementById("question-text").textContent = q.q;
+  document.getElementById("question-tracker").textContent = `Question ${index+1}`;
+  document.getElementById("timer-display").textContent = `Time: ${timeLeft}s`;
 
-    function setLocalLeaderboard(lb) {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(lb));
-    }
+  const opts = document.getElementById("options-container");
+  opts.innerHTML = "";
+  q.options.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.className="option-btn";
+    b.textContent=o;
+    b.onclick=()=>answer(i,b);
+    opts.appendChild(b);
+  });
 
-    function safeTrimName(name) {
-      return (name || '').trim().replace(/\s+/g, ' ').slice(0, 15);
-    }
+  timeLeft=20;
+  clearInterval(timer);
+  timer=setInterval(()=>{timeLeft--;document.getElementById("timer-display").textContent=`Time: ${timeLeft}s`;},1000);
+}
 
-    // ---------------------------------------------------------
-    // QUIZ LOGIC
-    // ---------------------------------------------------------
-    let currentQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let timeLeft = 20;
-    let timerInterval;
+function answer(i,btn){
+  clearInterval(timer);
+  const q=currentQuestions[index];
+  if(i===q.correct) score+=100+timeLeft*10;
+  btn.classList.add(i===q.correct?"correct":"wrong");
+  document.getElementById("next-btn").style.display="block";
+}
 
-    const screens = {
-        start: document.getElementById('start-screen'),
-        quiz: document.getElementById('quiz-screen'),
-        end: document.getElementById('end-screen'),
-        leaderboard: document.getElementById('leaderboard-screen')
-    };
+function nextQuestion(){
+  index++;
+  if(index<currentQuestions.length) loadQuestion();
+  else{
+    document.getElementById("final-score").textContent=`Your Score: ${score}`;
+    show("end");
+  }
+}
 
-    function showScreen(screenName) {
-        Object.values(screens).forEach(s => s.classList.remove('active'));
-        screens[screenName].classList.add('active');
-    }
+function saveScore(){
+  const name=document.getElementById("player-name").value.trim();
+  if(!name) return;
+  const lb=JSON.parse(localStorage.getItem(LOCAL_KEY)||"[]");
+  lb.push({name,score});
+  lb.sort((a,b)=>b.score-a.score);
+  localStorage.setItem(LOCAL_KEY,JSON.stringify(lb.slice(0,10)));
+  showLeaderboard();
+}
 
-    function shuffleArray(array) {
-        let shuffled = [...array];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-    }
+function showLeaderboard(){
+  show("leaderboard");
+  const list=document.getElementById("leaderboard-list");
+  list.innerHTML="";
+  const lb=JSON.parse(localStorage.getItem(LOCAL_KEY)||"[]");
+  lb.forEach((e,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<strong>#${i+1} ${e.name}</strong><span>${e.score}</span>`;
+    list.appendChild(li);
+  });
+}
 
-    window.startQuiz = function() {
-        currentQuestions = shuffleArray(masterQuestions);
-        currentQuestionIndex = 0;
-        score = 0;
-        document.getElementById('confetti-container').innerHTML = ''; 
-        showScreen('quiz');
-        loadQuestion();
-    };
+function resetLeaderboard(){
+  localStorage.removeItem(LOCAL_KEY);
+  showLeaderboard();
+}
 
-    function loadQuestion() {
-        const q = currentQuestions[currentQuestionIndex];
-        
-        const progressPercent = (currentQuestionIndex / currentQuestions.length) * 100;
-        document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-        document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
-        document.getElementById('question-text').textContent = q.q;
-        
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-        
-        q.options.forEach((opt, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.textContent = opt;
-            btn.onclick = () => selectAnswer(index, btn);
-            optionsContainer.appendChild(btn);
-        });
-
-        document.getElementById('rationale-container').style.display = 'none';
-        document.getElementById('next-btn').style.display = 'none';
-        
-        timeLeft = 20;
-        document.getElementById('timer-display').textContent = `Time: ${timeLeft}s`;
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function updateTimer() {
-        timeLeft--;
-        document.getElementById('timer-display').textContent = `Time: ${timeLeft}s`;
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            handleTimeout();
-        }
-    }
-
-    function selectAnswer(selectedIndex, selectedBtn) {
-        clearInterval(timerInterval);
-        const q = currentQuestions[currentQuestionIndex];
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(btn => btn.disabled = true);
-
-        if (selectedIndex === q.correct) {
-            selectedBtn.classList.add('correct');
-            score += (100 + (timeLeft * 10)); 
-        } else {
-            selectedBtn.classList.add('wrong');
-            buttons[q.correct].classList.add('correct');
-        }
-        showRationale(q.rationale);
-    }
-
-    function handleTimeout() {
-        const q = currentQuestions[currentQuestionIndex];
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(btn => btn.disabled = true);
-        buttons[q.correct].classList.add('correct');
-        showRationale("Time is up! " + q.rationale);
-    }
-
-    function showRationale(text) {
-        const rationaleDiv = document.getElementById('rationale-container');
-        rationaleDiv.textContent = text;
-        rationaleDiv.style.display = 'block';
-        document.getElementById('next-btn').style.display = 'block';
-    }
-
-    window.nextQuestion = function() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < currentQuestions.length) {
-            loadQuestion();
-        } else {
-            endQuiz();
-        }
-    };
-
-    window.quitQuiz = function() {
-        clearInterval(timerInterval);
-        document.getElementById('confetti-container').innerHTML = '';
-        showScreen('start');
-    };
-
-    function triggerConfetti() {
-        const container = document.getElementById('confetti-container');
-        const colors = ['#2563eb', '#22c55e', '#eab308', '#ef4444', '#a855f7'];
-        for (let i = 0; i < 100; i++) {
-            const conf = document.createElement('div');
-            conf.className = 'confetti';
-            conf.style.left = Math.random() * 100 + 'vw';
-            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
-            conf.style.animationDelay = Math.random() * 2 + 's';
-            container.appendChild(conf);
-        }
-    }
-
-    function endQuiz() {
-        document.getElementById('progress-bar').style.width = `100%`;
-        showScreen('end');
-        document.getElementById('final-score').textContent = `Your Score: ${score}`;
-        triggerConfetti();
-    }
-
-    window.saveScore = async function() {
-      const nameInput = safeTrimName(document.getElementById('player-name').value);
-      if (!nameInput) {
-        alert('Please enter a name.');
-        return;
-      }
-
-      const saveBtn = document.getElementById('save-btn');
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving...';
-
-      const newEntry = { name: nameInput, score: score, date: new Date().toLocaleDateString('en-GB') };
-
-      try {
-        if (apiConfigured()) {
-          await apiPostScore(newEntry);
-        } else {
-          let leaderboard = getLocalLeaderboard();
-          leaderboard.push(newEntry);
-          leaderboard.sort((a, b) => b.score - a.score);
-          leaderboard = leaderboard.slice(0, 10);
-          setLocalLeaderboard(leaderboard);
-        }
-
-        await window.showLeaderboard();
-      } catch (e) {
-        alert('Could not save score. ' + e.message);
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Score';
-      }
-    };
-
-    window.showLeaderboard = async function() {
-      showScreen('leaderboard');
-      const list = document.getElementById('leaderboard-list');
-      list.innerHTML = '';
-
-      const loadingLi = document.createElement('li');
-      loadingLi.className = 'loading';
-      loadingLi.textContent = 'Loading...';
-      list.appendChild(loadingLi);
-
-      try {
-        let leaderboard = [];
-        if (apiConfigured()) {
-          leaderboard = await apiGetLeaderboard();
-        } else {
-          leaderboard = getLocalLeaderboard();
-        }
-
-        list.innerHTML = '';
-
-        if (!leaderboard || leaderboard.length === 0) {
-          const li = document.createElement('li');
-          li.textContent = 'No scores yet. Be the first!';
-          list.appendChild(li);
-          return;
-        }
-
-        leaderboard.forEach((entry, index) => {
-          const li = document.createElement('li');
-          const left = document.createElement('strong');
-          left.textContent = `#${index + 1} ${entry.name}`;
-          const right = document.createElement('span');
-          right.textContent = `${entry.score} pts`;
-
-          li.appendChild(left);
-          li.appendChild(right);
-          list.appendChild(li);
-        });
-
-        if (!apiConfigured()) {
-          const li = document.createElement('li');
-          li.className = 'loading';
-          li.style.fontSize = '0.85rem';
-          li.style.marginTop = '10px';
-          li.textContent = 'Note: Leaderboard is currently stored on this device only. Set SHAREPOINT_URLs in the code to share across devices.';
-          list.appendChild(li);
-        }
-      } catch (e) {
-        list.innerHTML = '';
-        const li = document.createElement('li');
-        li.textContent = `Couldn't load leaderboard. ${e.message}`;
-        list.appendChild(li);
-      }
-    };
-
-    window.resetLeaderboard = async function() {
-        const confirmClear = confirm("Are you sure you want to clear the leaderboard? This action cannot be undone.");
-        if (!confirmClear) return;
-
-        if (apiConfigured()) {
-            if (SHAREPOINT_RESET_URL !== "") {
-                try {
-                    await fetch(SHAREPOINT_RESET_URL, { method: 'POST' });
-                    window.showLeaderboard();
-                } catch (e) {
-                    alert("Failed to reset SharePoint leaderboard. " + e.message);
-                }
-            } else {
-                alert("To reset the shared team leaderboard, the list must be cleared directly within SharePoint, or a SHAREPOINT_RESET_URL must be configured.");
-            }
-        } else {
-            localStorage.removeItem(LOCAL_KEY);
-            window.showLeaderboard();
-        }
-    };
-
-    window.resetQuiz = function() {
-        document.getElementById('player-name').value = '';
-        const saveBtn = document.getElementById('save-btn');
-        saveBtn.disabled = false;
-        saveBtn.textContent = "Save Score";
-        document.getElementById('confetti-container').innerHTML = '';
-        showScreen('start');
-    };
+function resetQuiz(){
+  document.getElementById("player-name").value="";
+  show("start");
+}
 </script>
 
 </body>
